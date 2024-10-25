@@ -20,8 +20,6 @@ class UserAPIView(APIView):
 
         if username and password:
 
-            print(username, password)
-
             user = authenticate(request, username=username, password=password)
 
             if user:
