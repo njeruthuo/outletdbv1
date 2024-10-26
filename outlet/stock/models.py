@@ -34,16 +34,15 @@ class Brand(models.Model):
 
 class Product(models.Model):
     name = models.CharField(max_length=100)
-    quantity = models.PositiveIntegerField()
     reorder_level = models.PositiveIntegerField(default=10)
     price_per_item = models.DecimalField(decimal_places=2, max_digits=12)
     brand = models.ForeignKey(Brand, on_delete=models.CASCADE)
     category = models.CharField(
         max_length=50, choices=CategoryChoices.choices, default=CategoryChoices.DRYFOODS)
-    
+
     class Meta:
         indexes = [
-            models.Index(fields=['name','category','brand'])
+            models.Index(fields=['name', 'category', 'brand'])
         ]
 
     def __str__(self):
