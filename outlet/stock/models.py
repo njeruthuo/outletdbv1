@@ -6,22 +6,9 @@ class CategoryChoices(models.TextChoices):
     TOILETRIES = 'TOILETRIES', 'TOILETRIES'
 
 
-# class Category(models.Model):
-#     class Meta:
-#         verbose_name_plural = 'Categories'
-
-#         indexes = [
-#             models.Index(fields=['name'])
-#         ]
-
-
-#     def __str__(self) -> str:
-#         return self.name
-
-
 class Brand(models.Model):
     name = models.CharField(max_length=100)
-    contact = models.CharField(max_length=15)
+    # contact = models.CharField(max_length=15)
 
     class Meta:
         indexes = [
