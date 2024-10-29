@@ -32,13 +32,25 @@ class ProductSerializer(serializers.ModelSerializer):
             brand=brand_instance, **validated_data)
         return product
 
+    def update(self, instance, validated_data):
+        brand_data = validated_data.pop('brand')
+
+        brand = {'name': brand_data.get('name')}
+
+        brand_serializer = BrandSerializer(
+            instance=instance.brand, data=brand, partial=True)
+        if brand_serializer.is_valid(raise_exception=True):
+            brand_serializer.save()
+
+        return super().update(instance, validated_data)
+
 
 class StockSerializer(serializers.ModelSerializer):
     product = ProductSerializer()
 
     class Meta:
         model = Stock
-        fields = ['product', 'quantity', 'last_updated']
+        fields = ['id', 'product', 'quantity', 'last_updated']
 
     def create(self, validated_data):
 
@@ -58,4 +70,18 @@ class StockSerializer(serializers.ModelSerializer):
             product=product_instance, **validated_data)
         return stock
 
-        # return super().create(validated_data)
+    def update(self, instance, validated_data):
+        product_data = validated_data.pop('product')
+        product = {
+            'name': product_data.get('name'),
+            'price_per_item': int(product_data.get('price_per_item')),
+            'category': product_data.get('category').replace(" ", ""),
+            'brand': {'name': product_data.get('brand')['name']}
+        }
+
+        product_serializer = ProductSerializer(
+            instance=instance.product, data=product, partial=True)
+        if product_serializer.is_valid(raise_exception=True):
+            product_serializer.save()
+
+        return super().update(instance, validated_data)
