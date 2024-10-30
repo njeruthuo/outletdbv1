@@ -45,7 +45,9 @@ class StockAPIView(APIView):
                 'product': {
                     'name': data.get('name'),
                     'price_per_item': float(data.get('price_per_item')),
-                    'category': data.get('category').replace(" ", ""),
+                    'category': {
+                        'name': data.get('category'),
+                    },
                     'brand': {'name': data.get('brand')},
                 },
                 'quantity': int(data.get('quantity')),

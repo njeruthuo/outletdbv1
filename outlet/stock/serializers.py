@@ -88,7 +88,7 @@ class StockSerializer(serializers.ModelSerializer):
         product = {
             'name': product_data.get('name'),
             'price_per_item': int(product_data.get('price_per_item')),
-            'category': product_data.get('category').replace(" ", ""),
+            'category': product_data.get('category'),
             'brand': {'name': product_data.get('brand')['name']}
         }
 
