@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 
 from django.shortcuts import get_object_or_404
 
-from .serializers import StockSerializer, Stock
+from .serializers import *
 
 
 class StockAPIView(APIView):
@@ -20,7 +20,9 @@ class StockAPIView(APIView):
             'product': {
                 'name': data.get('name'),
                 'price_per_item': float(data.get('price_per_item')),
-                'category': data.get('category').replace(" ", ""),
+                'category': {
+                    'name': data.get('category'),
+                },
                 'brand': {'name': data.get('brand')},
             },
             'quantity': int(data.get('quantity')),
@@ -55,7 +57,34 @@ class StockAPIView(APIView):
                 stock_serializer.save()
                 return Response({'message': 'Stock Item modified successfully'}, status=status.HTTP_200_OK)
 
-        return Response({'message': 'Stock Item modified successfully'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message': 'Stock Item modification failed'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, *args, **kwargs):
+        pk = kwargs.get('pk')
+        if pk:
+            Stock.objects.filter(id=pk).delete()
+            return Response({'message': 'Stock Item delete successful'}, status=status.HTTP_200_OK)
+        return Response({'message': 'Stock Item deletion failed'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 stock_api_view = StockAPIView.as_view()
+
+
+class CategoryAPIView(APIView):
+    def get(self, request, *args, **kwargs):
+        categories = Category.objects.all()
+        category_serializer = CategorySerializer(categories, many=True)
+        return Response(category_serializer.data, status=status.HTTP_200_OK)
+
+
+category_api_view = CategoryAPIView.as_view()
+
+
+class BrandAPIView(APIView):
+    def get(self, request, *args, **kwargs):
+        brands = Brand.objects.all()
+        brand_serializer = BrandSerializer(brands, many=True)
+        return Response(brand_serializer.data, status=status.HTTP_200_OK)
+
+
+brand_api_view = BrandAPIView.as_view()

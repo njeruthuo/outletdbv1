@@ -1,18 +1,25 @@
 from rest_framework import serializers
 
-from .models import Stock, Product, Brand
+from .models import Stock, Product, Brand, Category
 
 
 class BrandSerializer(serializers.ModelSerializer):
     class Meta:
         model = Brand
         fields = ['name',
-                  #   'contact'
+                  'contact'
                   ]
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ['id', 'name']
 
 
 class ProductSerializer(serializers.ModelSerializer):
     brand = BrandSerializer()
+    category = CategorySerializer()
 
     class Meta:
         model = Product
@@ -21,26 +28,32 @@ class ProductSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
 
         brand_data = validated_data.pop('brand')
+        category_data = validated_data.pop('category')
 
-        brand = {'name': brand_data.get('name')}
-
-        brand_serializer = BrandSerializer(data=brand)
-        if brand_serializer.is_valid(raise_exception=True):
-            brand_instance = brand_serializer.save()
+        brand = Brand.objects.get(name=brand_data.get('name'))
+        category = Category.objects.get(name=category_data.get('name'))
 
         product = Product.objects.create(
-            brand=brand_instance, **validated_data)
+            brand=brand, category=category, **validated_data)
         return product
 
     def update(self, instance, validated_data):
         brand_data = validated_data.pop('brand')
+        category_data = validated_data.pop('category')
 
-        brand = {'name': brand_data.get('name')}
+        brand = Brand.objects.get(name=brand_data.get('name'))
+        category = Category.objects.get(name=category_data.get('name'))
 
         brand_serializer = BrandSerializer(
             instance=instance.brand, data=brand, partial=True)
+
+        category_serializer = CategorySerializer(
+            instance=instance.category, data=category, partial=True)
+
         if brand_serializer.is_valid(raise_exception=True):
             brand_serializer.save()
+        if category_serializer.is_valid(raise_exception=True):
+            category_serializer.save()
 
         return super().update(instance, validated_data)
 
@@ -58,7 +71,7 @@ class StockSerializer(serializers.ModelSerializer):
         product = {
             'name': product_data.get('name'),
             'price_per_item': int(product_data.get('price_per_item')),
-            'category': product_data.get('category').replace(" ", ""),
+            'category': product_data.get('category'),
             'brand': {'name': product_data.get('brand')['name']}
         }
 
