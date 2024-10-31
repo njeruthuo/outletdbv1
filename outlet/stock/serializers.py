@@ -42,20 +42,21 @@ class ProductSerializer(serializers.ModelSerializer):
         brand_data = validated_data.pop('brand', None)
         category_data = validated_data.pop('category', None)
 
-        # Update brand and category if data is provided
+        # Update or create brand instance if brand data is provided
         if brand_data:
-            brand_serializer = BrandSerializer(
-                instance=instance.brand, data=brand_data, partial=True)
-            if brand_serializer.is_valid(raise_exception=True):
-                brand_serializer.save()
+            brand_instance, created = Brand.objects.get_or_create(
+                name=brand_data.get('name')
+            )
+            instance.brand = brand_instance
 
+        # Update or create category instance if category data is provided
         if category_data:
-            category_serializer = CategorySerializer(
-                instance=instance.category, data=category_data, partial=True)
-            if category_serializer.is_valid(raise_exception=True):
-                category_serializer.save()
+            category_instance, created = Category.objects.get_or_create(
+                name=category_data.get('name')
+            )
+            instance.category = category_instance
 
-        # Update the Product instance with remaining validated data
+        # Update other fields in the product instance
         return super().update(instance, validated_data)
 
 
