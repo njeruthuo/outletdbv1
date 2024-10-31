@@ -2,6 +2,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 
 from .serializers import *
@@ -9,7 +10,16 @@ from .serializers import *
 
 class StockAPIView(APIView):
     def get(self, request, *args, **kwargs):
-        stock = Stock.objects.all()
+        search = request.GET.get('search')
+        if search:
+            stock = Stock.objects.filter(
+                Q(product__category__name__icontains=search) |
+                Q(product__name__icontains=search) |
+                Q(product__brand__name__icontains=search)
+            )
+        else:
+            stock = Stock.objects.all()
+
         stock_serializer = StockSerializer(stock, many=True)
         return Response(stock_serializer.data, status=status.HTTP_200_OK)
 
