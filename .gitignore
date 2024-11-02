@@ -3,3 +3,5 @@ Pipfile.lock
 __pycache__/
 00*
 db.sqlite3
+*.pdf
+*.csv

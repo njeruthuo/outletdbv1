@@ -7,13 +7,13 @@ from .models import User
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
     list_display = ('username', 'email', 'first_name',
-                    'last_name', 'access_level', 'is_staff', 'is_active')
+                    'last_name', 'access_level', 'is_staff', 'is_active', 'shop')
 
     # Specify which fields can be searched in the admin interface
     search_fields = ('username', 'email', 'first_name', 'last_name')
 
     # Specify which fields to filter by in the admin interface
-    list_filter = ('access_level', 'is_staff', 'is_active')
+    list_filter = ('access_level', 'is_staff', 'is_active', 'shop')
 
     # Define the fieldsets to control the layout of the user edit form
     fieldsets = (
