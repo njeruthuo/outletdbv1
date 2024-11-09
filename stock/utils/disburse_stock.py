@@ -1,12 +1,12 @@
 from django.db import transaction
 from django.core.exceptions import ValidationError
 
-from outlet.shop.models import ShopStock
-from outlet.stock.models import Stock, StockDisbursement
+from shop.models import ShopStock, StockDisbursement
+from stock.models import Stock
 
 
 @transaction.atomic
-def disburse_stock(shop, product, disburse_quantity, disbursed_by=None):
+def disburse_stock(shop=None, product=None, disburse_quantity=None, disbursed_by=None):
     try:
         # Fetch the central stock for the product
         central_stock = Stock.objects.get(product=product)

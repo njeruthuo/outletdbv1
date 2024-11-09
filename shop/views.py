@@ -2,6 +2,8 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+from stock.models import Product
+from stock.utils import disburse_stock
 from .serializers import Shop, ShopSerializer
 
 
@@ -16,8 +18,6 @@ class ShopAPIView(APIView):
         data = request.data.copy()
         if 'licenses' in request.FILES:
             data['licenses'] = request.FILES['licenses']
-
-        print(data.get('licenses'), 'data')
 
         # Initialize the serializer with the combined data
         serializer = ShopSerializer(data=data)
@@ -35,3 +35,30 @@ class ShopAPIView(APIView):
 
 
 shop_api_view = ShopAPIView.as_view()
+
+
+class ShopStockManagementAPI(APIView):
+    def post(self, request, *args, **kwargs):
+        print(request.data)
+
+        shop_name = request.data.get('shop')
+        product_name = request.data.get('product_name')
+        disburseQuantity = request.data.get('disburseQuantity')
+
+        try:
+            product = Product.objects.get(name=product_name)
+        except Product.DoesNotExist:
+            return Response({"Product Error": "Product Does Not Exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            shop = Shop.objects.get(branch_name=shop_name)
+        except Shop.DoesNotExist:
+            return Response({"Shop Error": "Shop Does Not Exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+        disburse_stock.disburse_stock(shop=shop, product=product,
+                       disburse_quantity=disburseQuantity)
+
+        return Response({}, status=status.HTTP_201_CREATED)
+
+
+shop_stock_mgt_api = ShopStockManagementAPI.as_view()

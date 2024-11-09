@@ -30,6 +30,7 @@ ALLOWED_HOSTS = []
 
 
 INSTALLED_APPS = [
+    'outlet',
     'users',
     'stock',
     'shop',
