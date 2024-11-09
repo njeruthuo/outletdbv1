@@ -1,10 +1,6 @@
 from django.db import models
 
 
-class CategoryChoices(models.TextChoices):
-    DRYFOODS = 'DRYFOODS', 'DRYFOODS'
-    TOILETRIES = 'TOILETRIES', 'TOILETRIES'
-
 
 class Brand(models.Model):
     name = models.CharField(max_length=100)
@@ -64,3 +60,6 @@ class Stock(models.Model):
 
     def __str__(self):
         return f"{self.product.name} - {self.quantity} units"
+
+
+
