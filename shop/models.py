@@ -1,8 +1,8 @@
-from django.db import models
 from stock.models import Product
 
-
-# from django.contrib.gis.db import models as gis_models
+from django.db import models
+from users.models import User
+from django.contrib.auth import get_user_model
 
 
 class Shop(models.Model):
@@ -14,11 +14,10 @@ class Shop(models.Model):
         decimal_places=2, max_digits=10, blank=True, null=True, default=0
     )
     licenses = models.FileField(upload_to="licenses")
-    # coordinates = gis_models.PointField(
-    #     geography=True, blank=True, null=True, default="POINT(0 0)")
+    operators = models.ManyToManyField(User,  related_name='operated_shop')
 
     def __str__(self):
-        return f"Outlet distribution center {self.branch_name} - {self.location}"
+        return f"{self.branch_name} - {self.location}"
 
 
 class ShopStock(models.Model):

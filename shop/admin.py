@@ -2,7 +2,6 @@ from django.contrib import admin
 from .models import *
 
 
-
 class ShopStockAdmin(admin.TabularInline):
     list_display = ['get_product_name']
     model = ShopStock

@@ -30,12 +30,11 @@ ALLOWED_HOSTS = []
 
 
 INSTALLED_APPS = [
-    'outlet',
-    'users',
-    'stock',
-    'shop',
     'corsheaders',
     'rest_framework',
+    'shop.apps.ShopConfig',
+    'stock.apps.StockConfig',
+    'users.apps.UsersConfig',
     'rest_framework.authtoken',
     'django.contrib.admin',
     'django.contrib.auth',

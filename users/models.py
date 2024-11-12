@@ -1,8 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
-from shop.models import Shop
-
 
 class TextChoices(models.TextChoices):
     ADMIN = 'Admin', 'Admin'
@@ -16,8 +14,6 @@ class User(AbstractUser):
         choices=TextChoices.choices,
         default=TextChoices.EMPLOYEE,
     )
-    shop = models.ForeignKey(
-        Shop, on_delete=models.CASCADE, related_name="operators", null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if not self.username:
