@@ -15,6 +15,7 @@ class Shop(models.Model):
     )
     licenses = models.FileField(upload_to="licenses")
     operators = models.ManyToManyField(User,  related_name='operated_shop')
+    coordinates = models.JSONField(default=dict, blank=True)
 
     def __str__(self):
         return f"{self.branch_name} - {self.location}"

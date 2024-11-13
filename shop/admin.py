@@ -16,6 +16,6 @@ class ShopStockAdmin(admin.TabularInline):
 class ShopAdmin(admin.ModelAdmin):
     inlines = [ShopStockAdmin]
     list_display = ['branch_name', 'location',
-                    'opening_date', 'weight_tat', 'avg_weekly_profit', 'licenses']
+                    'opening_date', 'weight_tat', 'avg_weekly_profit', 'licenses','coordinates']
 
     search_fields = ['branch_name', 'location']

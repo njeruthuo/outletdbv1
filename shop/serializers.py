@@ -23,4 +23,4 @@ class ShopSerializer(serializers.ModelSerializer):
     class Meta:
         model = Shop
         fields = ['stock', 'branch_name',
-                  'location', 'opening_date', 'weight_tat', 'avg_weekly_profit', 'licenses']
+                  'location', 'opening_date', 'weight_tat', 'avg_weekly_profit', 'licenses','coordinates']
