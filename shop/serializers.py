@@ -1,4 +1,5 @@
 from .models import *
+from users.models import User
 
 from rest_framework import serializers
 
@@ -17,10 +18,18 @@ class ShopStockSerializer(serializers.ModelSerializer):
         fields = ['id', 'product', 'quantity']
 
 
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'first_name',
+                  'last_name', 'photo', 'phone_number']
+
+
 class ShopSerializer(serializers.ModelSerializer):
     stock = ShopStockSerializer(source='shop_stocks', many=True)
+    operators = UserSerializer(many=True)
 
     class Meta:
         model = Shop
         fields = ['stock', 'branch_name',
-                  'location', 'opening_date', 'weight_tat', 'avg_weekly_profit', 'licenses','coordinates']
+                  'location', 'opening_date', 'weight_tat', 'avg_weekly_profit', 'licenses', 'coordinates', 'operators']

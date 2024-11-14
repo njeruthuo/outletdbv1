@@ -56,7 +56,7 @@ class ShopStockManagementAPI(APIView):
             return Response({"Shop Error": "Shop Does Not Exist"}, status=status.HTTP_400_BAD_REQUEST)
 
         disburse_stock.disburse_stock(shop=shop, product=product,
-                       disburse_quantity=disburseQuantity)
+                                      disburse_quantity=disburseQuantity)
 
         return Response({}, status=status.HTTP_201_CREATED)
 

@@ -7,17 +7,18 @@ from .models import User
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
     list_display = ('username', 'email', 'first_name',
-                    'last_name', 'access_level', 'is_staff', 'is_active')
+                    'last_name', 'phone_number', 'access_level', 'is_staff', 'is_active')
 
     # Specify which fields can be searched in the admin interface
-    search_fields = ('username', 'email', 'first_name', 'last_name')
+    search_fields = ('username', 'email', 'first_name',
+                     'last_name', 'phone_number')
 
     # Specify which fields to filter by in the admin interface
-    list_filter = ('access_level', 'is_staff', 'is_active')
+    list_filter = ('access_level', 'is_staff', 'is_active', 'phone_number')
 
     # Define the fieldsets to control the layout of the user edit form
     fieldsets = (
-        (None, {'fields': ('email', 'password')}),
+        (None, {'fields': ('photo', 'email', 'phone_number')}),
         ('Personal Info', {'fields': ('first_name', 'last_name',)}),
         ('Permissions', {'fields': ('is_active', 'is_staff',
          'is_superuser', 'groups', 'user_permissions')}),
@@ -30,6 +31,6 @@ class UserAdmin(admin.ModelAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('username', 'password1', 'password2', 'access_level', 'is_active', 'is_staff', 'is_superuser'),
+            'fields': ('photo', 'username', 'phone_number', 'password1', 'password2', 'access_level', 'is_active', 'is_staff', 'is_superuser'),
         }),
     )
