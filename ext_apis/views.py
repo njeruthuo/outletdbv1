@@ -59,7 +59,7 @@ class MpesaPayAPIView(APIView):
             "PartyA": phone_number,
             "PartyB": "174379",
             "PhoneNumber": phone_number,
-            "CallBackURL": "https://yourdomain.com/callback",
+            "CallBackURL": "https://a436-102-219-208-154.ngrok-free.app/api/external/callback/",
             "AccountReference": "Test Payment",
             "TransactionDesc": "Payment for goods",
         }
@@ -71,54 +71,12 @@ class MpesaPayAPIView(APIView):
 mpesa_api_view = MpesaPayAPIView.as_view()
 
 
-@csrf_exempt
-def initiate_payment(request):
-    if request.method == "POST":
-        print(request.data)
-        data = request.POST
-        phone_number = format_phone_number(data.get(
-            "phone_number"))  # Customer's phone number
-        amount = data.get("amount")  # Payment amount
-
-        print(phone_number)
-
-        token = get_access_token()
-        headers = {
-            "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json",
-        }
-        payload = {
-            "BusinessShortCode": "174379",  # Test short code
-            "Password": generate_password(),
-            "Timestamp": get_timestamp(),
-            "TransactionType": "CustomerPayBillOnline",
-            "Amount": amount,
-            "PartyA": 600996,  # phone_number,
-            "PartyB": "600000",
-            "PhoneNumber": 254708374149,  # phone_number,
-            "CallBackURL": "https://yourdomain.com/callback",
-            "AccountReference": "Test Payment",
-            "TransactionDesc": "Payment for goods",
-        }
-
-        response = requests.post(STK_PUSH_URL, headers=headers, json=payload)
-        return JsonResponse(response.json())
-
-
-# @csrf_exempt
-# def payment_callback(request):
-#     if request.method == "POST":
-#         callback_data = request.body.decode("utf-8")
-#         # Handle and save the callback data
-#         print(callback_data)
-#         return JsonResponse({"message": "Callback received successfully"})
-
-
 class PaymentCallBackAPIView(APIView):
     def post(self, request, *args, **kwargs):
-        callback_data = request.body.decode("utf-8")
-        # Handle and save the callback data
-        print(callback_data)
+        """We can provide a way to create logs of all transactions that has happened"""
+        callback_data = request.body.decode("utf-8") or request.data
+
+        print(callback_data or "No response received")
         return JsonResponse({"message": "Callback received successfully"})
 
 
