@@ -1,3 +1,5 @@
+import os
+import json
 import base64
 import requests
 
@@ -5,14 +7,13 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.views import APIView
 
+from utils.phone_number_formatter import format_phone_number
 from utils.timestamp_evaluator import get_timestamp
 
-# Safaricom API credentials
-CONSUMER_KEY = 'HIB8zBKPlrl8WOusIf0KEunJV0nAKAJqjMnYLsADxCOezsn5'
-CONSUMER_SECRET = 'AnFd51KaKDfzFHDwPsKH2FSe9AUSN2FrUEkkmsNRsjbClgjagFxAtYNguBevswDR'
+CONSUMER_KEY = 'AbVyvUru4hhA195H5lZLlHJp4tqCEwLElIMu0ydPWxSmviC'
+CONSUMER_SECRET = "PkIDUOPNNtBtZR1Ybh3Rh6d6GEoVKk4cRdtH8z4ZdYQUyrPlop1FpZExFhLBNjHz"
 
-# M-Pesa API URLs
-# Change to production URL when live
+
 BASE_URL = "https://sandbox.safaricom.co.ke"
 TOKEN_URL = f"{BASE_URL}/oauth/v1/generate?grant_type=client_credentials"
 STK_PUSH_URL = f"{BASE_URL}/mpesa/stkpush/v1/processrequest"
@@ -21,21 +22,20 @@ STK_PUSH_URL = f"{BASE_URL}/mpesa/stkpush/v1/processrequest"
 
 
 def get_access_token():
-    credentials = f"{CONSUMER_KEY}:{CONSUMER_SECRET}"
-    encoded_credentials = base64.b64encode(credentials.encode()).decode()
-    headers = {"Authorization": f"Basic {encoded_credentials}"}
-    response = requests.get(TOKEN_URL, headers=headers)
-    return response.json().get("access_token")
+    response = requests.request("GET", 'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials', headers={
+                                'Authorization': 'Basic c0FiVnl2VXJ1NGhoQTE5NUg1bFpMbEhKcDR0cUNFd0xFbElNdTB5ZFBXeFNtdmlDOlBrSURVT1BOTnRCdFpSMVliaDNSaDZkNkdFb1ZLazRjUmR0SDh6NFpkWVFVeXJQbG9wMUZwWkV4RmhMQk5qSHo='})
+    data = json.loads(response.text.encode('utf8'))['access_token']
+    return data
+
+
+def generate_password():
+    timestamp = get_timestamp()
+    short_code = "174379"  # Test short code
+    passkey = "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919"
+    data_to_encode = f"{short_code}{passkey}{timestamp}"
+    return base64.b64encode(data_to_encode.encode()).decode()
 
 # Initiate STK Push
-
-
-def format_phone_number(args):
-    str_input = str(args)
-    if str_input.startswith("254"):
-        return str_input
-    if len(str_input) == 10 and str_input.startswith("0"):
-        return str_input.replace("0", "254")
 
 
 class MpesaPayAPIView(APIView):
@@ -44,8 +44,6 @@ class MpesaPayAPIView(APIView):
         phone_number = format_phone_number(data.get(
             "phone_number"))  # Customer's phone number
         amount = data.get("amount")  # Payment amount
-
-        print(phone_number)
 
         token = get_access_token()
         headers = {
@@ -95,9 +93,9 @@ def initiate_payment(request):
             "Timestamp": get_timestamp(),
             "TransactionType": "CustomerPayBillOnline",
             "Amount": amount,
-            "PartyA": phone_number,
-            "PartyB": "174379",
-            "PhoneNumber": phone_number,
+            "PartyA": 600996,  # phone_number,
+            "PartyB": "600000",
+            "PhoneNumber": 254708374149,  # phone_number,
             "CallBackURL": "https://yourdomain.com/callback",
             "AccountReference": "Test Payment",
             "TransactionDesc": "Payment for goods",
@@ -107,18 +105,21 @@ def initiate_payment(request):
         return JsonResponse(response.json())
 
 
-def generate_password():
-    timestamp = get_timestamp()
-    short_code = "174379"  # Test short code
-    passkey = "bfb279f9aa9bdbcf158e97dd71a467cd2b5c4f57c192b36bdfef5ac2b1aa3d83"
-    data_to_encode = f"{short_code}{passkey}{timestamp}"
-    return base64.b64encode(data_to_encode.encode()).decode()
+# @csrf_exempt
+# def payment_callback(request):
+#     if request.method == "POST":
+#         callback_data = request.body.decode("utf-8")
+#         # Handle and save the callback data
+#         print(callback_data)
+#         return JsonResponse({"message": "Callback received successfully"})
 
 
-@csrf_exempt
-def payment_callback(request):
-    if request.method == "POST":
+class PaymentCallBackAPIView(APIView):
+    def post(self, request, *args, **kwargs):
         callback_data = request.body.decode("utf-8")
         # Handle and save the callback data
         print(callback_data)
         return JsonResponse({"message": "Callback received successfully"})
+
+
+payment_callback = PaymentCallBackAPIView.as_view()
