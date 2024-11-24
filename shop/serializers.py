@@ -26,8 +26,9 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class ShopSerializer(serializers.ModelSerializer):
-    stock = ShopStockSerializer(source='shop_stocks', many=True)
-    operators = UserSerializer(many=True)
+    stock = ShopStockSerializer(
+        source='shop_stocks', many=True, required=False)
+    operators = UserSerializer(many=True, required=False)
 
     class Meta:
         model = Shop

@@ -2,6 +2,8 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+from django.db.transaction import atomic
+
 from stock.models import Product
 from stock.utils import disburse_stock
 from .serializers import Shop, ShopSerializer
@@ -13,9 +15,10 @@ class ShopAPIView(APIView):
         shop_serializer = ShopSerializer(shops, many=True).data
         return Response(shop_serializer, status=status.HTTP_200_OK)
 
+    @atomic
     def post(self, request, *args, **kwargs):
         # Combine request data and files into a single data dictionary
-        data = request.data.copy()
+        data = request.data
         if 'licenses' in request.FILES:
             data['licenses'] = request.FILES['licenses']
 
@@ -27,9 +30,11 @@ class ShopAPIView(APIView):
             return Response({"message": "Successfully created the shop"}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @atomic
     def put(self, request, *args, **kwargs):
         return Response({}, status=status.HTTP_202_ACCEPTED)
 
+    @atomic
     def delete(self, request, *args, **kwargs):
         return Response({}, status=status.HTTP_200_OK)
 
@@ -38,6 +43,7 @@ shop_api_view = ShopAPIView.as_view()
 
 
 class ShopStockManagementAPI(APIView):
+    @atomic
     def post(self, request, *args, **kwargs):
         print(request.data)
 

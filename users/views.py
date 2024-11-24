@@ -37,10 +37,11 @@ class UserAPIView(APIView):
                 return Response({
                     'token': token.key,
                     'created': created,
-                    'access':user.access_level,
+                    'access': user.access_level,
                 }, status=status.HTTP_200_OK)
             else:
                 return Response({'detail': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
+
         elif email and first_name and last_name and branch_name:
             try:
                 shop = Shop.objects.get(branch_name=branch_name)
@@ -49,6 +50,7 @@ class UserAPIView(APIView):
 
             user = User.objects.create(
                 email=email, last_name=last_name, first_name=first_name, access_level=TextChoices.EMPLOYEE)
+            user.set_password('Rapid Rack!')
 
             if user:
                 shop.operators.add(user)
