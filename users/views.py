@@ -37,6 +37,7 @@ class UserAPIView(APIView):
                 return Response({
                     'token': token.key,
                     'created': created,
+                    'access':user.access_level,
                 }, status=status.HTTP_200_OK)
             else:
                 return Response({'detail': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
