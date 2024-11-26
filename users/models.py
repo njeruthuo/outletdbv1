@@ -14,7 +14,7 @@ class User(AbstractUser):
     access_level = models.CharField(
         max_length=20,
         choices=TextChoices.choices,
-        default=TextChoices.EMPLOYEE,
+        null=True
     )
 
     phone_number = models.CharField(max_length=25, null=True, blank=True)
