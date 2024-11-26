@@ -4,16 +4,39 @@ from rest_framework.response import Response
 
 from django.db.transaction import atomic
 
+from shop.models import ShopStock
 from stock.models import Product
+from stock.serializers import StockSerializer
 from stock.utils import disburse_stock
+from users.authentication import TokenAuthentication
+from users.models import TextChoices
 from .serializers import Shop, ShopSerializer
 
 
 class ShopAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+
     def get(self, request, *args, **kwargs):
-        shops = Shop.objects.all()
-        shop_serializer = ShopSerializer(shops, many=True).data
-        return Response(shop_serializer, status=status.HTTP_200_OK)
+        if request.user.access_level==TextChoices.EMPLOYEE:
+            user_shops = request.user.operated_shop.all()
+            # Get stocks for all those shops
+            all_shop_stocks = ShopStock.objects.filter(shop__in=user_shops)
+            serialized_stock = StockSerializer(all_shop_stocks, many=True).data
+            return Response(serialized_stock, status=status.HTTP_200_OK)
+
+        elif request.user.access_level==TextChoices.ADMIN:
+            shops = Shop.objects.all()
+            shop_serializer = ShopSerializer(shops, many=True).data
+            return Response(shop_serializer, status=status.HTTP_200_OK)
+        
+        elif request.user.access_level==TextChoices.MANAGER:
+            """If the user is a manager, show all the shops in their region"""
+            shops = Shop.objects.all() # filter per region
+            shop_serializer = ShopSerializer(shops, many=True).data
+            return Response(shop_serializer, status=status.HTTP_200_OK)
+        
+        else:
+            return Response({'ACCESS DENIED':'THIS USER IS NOT PERMITTED!'}, status=status.HTTP_404_NOT_FOUND)
 
     @atomic
     def post(self, request, *args, **kwargs):
