@@ -17,26 +17,26 @@ class ShopAPIView(APIView):
     authentication_classes = [TokenAuthentication]
 
     def get(self, request, *args, **kwargs):
-        if request.user.access_level==TextChoices.EMPLOYEE:
+        if request.user.access_level == TextChoices.EMPLOYEE:
             user_shops = request.user.operated_shop.all()
             # Get stocks for all those shops
             all_shop_stocks = ShopStock.objects.filter(shop__in=user_shops)
             serialized_stock = StockSerializer(all_shop_stocks, many=True).data
             return Response(serialized_stock, status=status.HTTP_200_OK)
 
-        elif request.user.access_level==TextChoices.ADMIN:
+        elif request.user.access_level == TextChoices.ADMIN:
             shops = Shop.objects.all()
             shop_serializer = ShopSerializer(shops, many=True).data
             return Response(shop_serializer, status=status.HTTP_200_OK)
-        
-        elif request.user.access_level==TextChoices.MANAGER:
+
+        elif request.user.access_level == TextChoices.MANAGER:
             """If the user is a manager, show all the shops in their region"""
-            shops = Shop.objects.all() # filter per region
+            shops = Shop.objects.all()  # filter per region
             shop_serializer = ShopSerializer(shops, many=True).data
             return Response(shop_serializer, status=status.HTTP_200_OK)
-        
+
         else:
-            return Response({'ACCESS DENIED':'THIS USER IS NOT PERMITTED!'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'ACCESS DENIED': 'THIS USER IS UNAUTHORIZED!'}, status=status.HTTP_401_UNAUTHORIZED)
 
     @atomic
     def post(self, request, *args, **kwargs):
