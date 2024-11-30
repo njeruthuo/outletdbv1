@@ -1,8 +1,6 @@
-from django.urls import re_path
-
-from ext_apis.consumers import MpesaTransactionConsumer
+from django.urls import path,re_path
+from .consumers import TransactionConsumer
 
 websocket_urlpatterns = [
-    re_path(
-        r'ws/transaction/(?P<receipt_id>[\w-]+)/$', MpesaTransactionConsumer.as_asgi()),
+    re_path(r'ws/transaction/$', TransactionConsumer.as_asgi()),
 ]

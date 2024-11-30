@@ -1,3 +1,5 @@
+from django.views import View
+import logging
 import json
 import base64
 import requests
@@ -59,7 +61,7 @@ class MpesaPayAPIView(APIView):
             "PartyA": phone_number,
             "PartyB": "174379",
             "PhoneNumber": phone_number,
-            "CallBackURL": "https://truly-evident-hedgehog.ngrok-free.app/",
+            "CallBackURL": "https://truly-evident-hedgehog.ngrok-free.app/api/external/callback/",
             "AccountReference": "RAPID RACK DISTRIBUTORS",
             "TransactionDesc": "Payment for goods",
         }
@@ -71,31 +73,48 @@ class MpesaPayAPIView(APIView):
 mpesa_api_view = MpesaPayAPIView.as_view()
 
 
-class PaymentCallBackAPIView(APIView):
+logger = logging.getLogger(__name__)
+
+
+class PaymentCallBackAPIView(View):
     def post(self, request, *args, **kwargs):
-        callback_data = json.loads(request.body.decode("utf-8"))
+        try:
+            callback_data = json.loads(request.body.decode("utf-8"))
 
-        # Extract receipt ID and transaction details
-        receipt_id = callback_data.get("Body", {}).get(
-            "stkCallback", {}).get("InvoiceNumber")
-        result_code = callback_data.get("Body", {}).get(
-            "stkCallback", {}).get("ResultCode")
-        result_desc = callback_data.get("Body", {}).get(
-            "stkCallback", {}).get("ResultDesc")
+            # Extract receipt ID and transaction details
+            stk_callback = callback_data.get("Body", {}).get("stkCallback", {})
+            receipt_id = stk_callback.get("CheckoutRequestID")
+            result_code = stk_callback.get("ResultCode")
+            result_desc = stk_callback.get("ResultDesc")
 
-        # Notify WebSocket group
-        channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send)(
-            f"transaction_{receipt_id}",
-            {
-                "type": "transaction_update",
-                "status": "SUCCESS" if result_code == 0 else "FAILED",
-                "receipt_id": receipt_id,
-                "description": result_desc,
-            }
-        )
+            if not receipt_id:
+                logger.error("Missing receipt ID in callback data")
+                return JsonResponse({"ResultCode": 1, "ResultDesc": "Missing receipt ID"}, status=400)
 
-        return JsonResponse({"message": "Callback received successfully"})
+            logger.info(f"Callback data received: {callback_data}")
+
+            # Notify the static WebSocket group
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                "transaction_updates",
+                {
+                    "type": "transaction_update",
+                    "status": "SUCCESS" if result_code == 0 else "FAILED",
+                    "receipt_id": receipt_id,
+                    "description": result_desc,
+                }
+            )
+
+            # Respond to M-Pesa
+            return JsonResponse({"ResultCode": 0, "ResultDesc": "Callback received successfully"})
+
+        except json.JSONDecodeError as e:
+            logger.error(f"Invalid JSON received: {str(e)}")
+            return JsonResponse({"ResultCode": 1, "ResultDesc": "Invalid JSON format"}, status=400)
+
+        except Exception as e:
+            logger.error(f"Error processing callback: {str(e)}")
+            return JsonResponse({"ResultCode": 1, "ResultDesc": "Internal server error"}, status=500)
 
 
 payment_callback = PaymentCallBackAPIView.as_view()

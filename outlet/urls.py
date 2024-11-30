@@ -20,7 +20,6 @@ from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
 
-from ext_apis.consumers import MpesaTransactionConsumer
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -28,5 +27,5 @@ urlpatterns = [
     path('api/stock/', include('stock.urls')),
     path('api/shop/', include('shop.urls')),
     path('api/external/', include('ext_apis.urls')),
-    
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
