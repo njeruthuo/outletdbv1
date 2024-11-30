@@ -41,6 +41,7 @@ class StockDisbursement(models.Model):
     product = models.ForeignKey(
         Product, on_delete=models.CASCADE, related_name='disbursements')
     disburse_quantity = models.PositiveIntegerField()
+
     # Optionally track the user or admin
     disbursed_by = models.CharField(max_length=100, blank=True, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
