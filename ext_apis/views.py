@@ -1,10 +1,10 @@
-import os
 import json
 import base64
 import requests
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 from rest_framework.views import APIView
 
 from utils.phone_number_formatter import format_phone_number
@@ -73,10 +73,28 @@ mpesa_api_view = MpesaPayAPIView.as_view()
 
 class PaymentCallBackAPIView(APIView):
     def post(self, request, *args, **kwargs):
-        """We can provide a way to create logs of all transactions that has happened"""
-        callback_data = request.body.decode("utf-8") or request.data
+        callback_data = json.loads(request.body.decode("utf-8"))
 
-        print(callback_data)
+        # Extract receipt ID and transaction details
+        receipt_id = callback_data.get("Body", {}).get(
+            "stkCallback", {}).get("InvoiceNumber")
+        result_code = callback_data.get("Body", {}).get(
+            "stkCallback", {}).get("ResultCode")
+        result_desc = callback_data.get("Body", {}).get(
+            "stkCallback", {}).get("ResultDesc")
+
+        # Notify WebSocket group
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f"transaction_{receipt_id}",
+            {
+                "type": "transaction_update",
+                "status": "SUCCESS" if result_code == 0 else "FAILED",
+                "receipt_id": receipt_id,
+                "description": result_desc,
+            }
+        )
+
         return JsonResponse({"message": "Callback received successfully"})
 
 

@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'shop.apps.ShopConfig',
     'ext_apis',
+    'channels',
     'stock.apps.StockConfig',
     'users.apps.UsersConfig',
     'rest_framework.authtoken',
@@ -51,6 +52,16 @@ INSTALLED_APPS = [
 ]
 
 AUTH_USER_MODEL = 'users.User'
+
+ASGI_APPLICATION = 'outlet.asgi.application'
+
+WSGI_APPLICATION = 'outlet.wsgi.application'
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",  # For production, use Redis
+    },
+}
 
 
 MIDDLEWARE = [
@@ -82,7 +93,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'outlet.wsgi.application'
+
 
 
 AUTHENTICATION_BACKENDS = [
