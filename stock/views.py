@@ -1,15 +1,21 @@
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.views import APIView
-
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 
+from rest_framework import status
+from rest_framework.views import APIView
+from rest_framework.response import Response
+
 from .serializers import *
+from shop.models import ShopStock
+from users.models import TextChoices
+from users.authentication import TokenAuthentication
 
 
 class StockAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+
     def get(self, request, *args, **kwargs):
+
         search = request.GET.get('search')
         if search:
             stock = Stock.objects.filter(
@@ -18,7 +24,15 @@ class StockAPIView(APIView):
                 Q(product__brand__name__icontains=search)
             )
         else:
-            stock = Stock.objects.all()
+            """If the user making the request is an employee, return a list of products in their shop"""
+            if request.user.access_level == TextChoices.EMPLOYEE:
+                user_shops = request.user.operated_shop.all()
+                all_shop_stocks = ShopStock.objects.filter(shop__in=user_shops)
+                serialized_stock = StockSerializer(
+                    all_shop_stocks, many=True).data
+                return Response(serialized_stock, status=status.HTTP_200_OK)
+            else:
+                stock = Stock.objects.all()
 
         stock_serializer = StockSerializer(stock, many=True)
         return Response(stock_serializer.data, status=status.HTTP_200_OK)

@@ -59,8 +59,8 @@ class MpesaPayAPIView(APIView):
             "PartyA": phone_number,
             "PartyB": "174379",
             "PhoneNumber": phone_number,
-            "CallBackURL": "https://a436-102-219-208-154.ngrok-free.app/api/external/callback/",
-            "AccountReference": "Test Payment",
+            "CallBackURL": "https://truly-evident-hedgehog.ngrok-free.app/",
+            "AccountReference": "RAPID RACK DISTRIBUTORS",
             "TransactionDesc": "Payment for goods",
         }
 
@@ -76,7 +76,7 @@ class PaymentCallBackAPIView(APIView):
         """We can provide a way to create logs of all transactions that has happened"""
         callback_data = request.body.decode("utf-8") or request.data
 
-        print(callback_data or "No response received")
+        print(callback_data)
         return JsonResponse({"message": "Callback received successfully"})
 
 
