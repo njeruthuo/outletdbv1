@@ -1,8 +1,14 @@
-from stock.models import Product
-
 from django.db import models
+
+from stock.models import Product
 from users.models import User
-from django.contrib.auth import get_user_model
+
+
+class StockDisbursementStatuses(models.TextChoices):
+    REQUEST_SENT = "REQUEST_SENT", "REQUEST_SENT"
+    REQUEST_RECEIVED = "REQUEST_RECEIVED", "REQUEST_RECEIVED"
+    DISBURSED = "DISBURSED", "DISBURSED"
+    DISBURSEMENT_RECEIVED = "DISBURSEMENT_RECEIVED", "DISBURSEMENT_RECEIVED"
 
 
 class Shop(models.Model):
@@ -14,7 +20,7 @@ class Shop(models.Model):
         decimal_places=2, max_digits=10, blank=True, null=True, default=0
     )
     licenses = models.FileField(upload_to="licenses")
-    operators = models.ManyToManyField(User,  related_name='operated_shop')
+    operators = models.ManyToManyField(User, related_name='operated_shop')
     coordinates = models.JSONField(default=dict, blank=True)
 
     def __str__(self):
@@ -45,6 +51,8 @@ class StockDisbursement(models.Model):
     # Optionally track the user or admin
     disbursed_by = models.CharField(max_length=100, blank=True, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(choices=StockDisbursementStatuses, max_length=30,
+                              default=StockDisbursementStatuses.DISBURSED)
 
     def __str__(self):
         return (f"Disbursed {self.disburse_quantity} units of {self.product.name} "

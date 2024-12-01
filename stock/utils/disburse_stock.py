@@ -1,7 +1,8 @@
-from django.db import transaction
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
 from shop.models import ShopStock, StockDisbursement
+from shop.models import StockDisbursementStatuses
 from stock.models import Stock
 
 
@@ -31,7 +32,8 @@ def disburse_stock(shop=None, product=None, disburse_quantity=None, disbursed_by
             shop=shop,
             product=product,
             disburse_quantity=disburse_quantity,
-            disbursed_by=disbursed_by
+            disbursed_by=disbursed_by,
+            status=StockDisbursementStatuses.DISBURSED
         )
 
         return f"Successfully disbursed {disburse_quantity} units of {product.name} to {shop.branch_name}."
