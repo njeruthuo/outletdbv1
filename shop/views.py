@@ -1,9 +1,11 @@
+from decimal import Decimal
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from django.db.transaction import atomic
 
+from ext_apis.models import TransactionLog, TransactionStatusChoices
 from shop.models import ShopStock
 from stock.models import Product
 from stock.serializers import StockSerializer
@@ -81,48 +83,62 @@ class ShopStockManagementAPI(APIView):
 
         else:
             """Complete a sale if sale parameters are provided"""
+            # Receive only the products and units sold, subtract from the shop's quantity, and make a log entry
+            # products = request.data  # Assume this is a dictionary of product data
             user_shop = request.user.operated_shop.first()
 
             if not user_shop:
                 return Response({"error": "Shop not found for the user."}, status=status.HTTP_404_NOT_FOUND)
 
-            # Receive only the products and units sold, subtract from the shop's quantity, and make a log entry
-            products = request.data  # Assume this is a dictionary of product data
+            if isinstance(request.data, str):
+                import json
+                products = json.loads(request.data)
+            else:
+                products = request.data
 
             if isinstance(products, dict):
+                transaction_log = TransactionLog.objects.create(
+                    user=request.user,
+                    shop=user_shop,
+                    receipt_ID=request.data.get("receipt_ID"),
+                    transaction_status=TransactionStatusChoices.COMPLETED,
+                    customer_number=request.data.get('payeeNumber'),
+                    product_quantities={},
+                    profit=0
+                )
                 for product_data in products.values():
-                    try:
-                        quantity_sold = product_data['quantity']
-                        product_name = product_data['stock']['product']['name']
+                    if isinstance(product_data, dict):
+                        try:
+                            quantity_sold = product_data.get('quantity')
+                            product_name = product_data['stock']['product']['name']
 
-                        # Get the ShopStock instance
-                        shop_stock = user_shop.shop_stocks.filter(
-                            product__name=product_name).first()
+                            # Get the ShopStock instance
+                            shop_stock = user_shop.shop_stocks.filter(
+                                product__name=product_name).first()
 
-                        if not shop_stock:
-                            return Response({"error": f"Product '{product_name}' not found in shop."}, status=status.HTTP_404_NOT_FOUND)
+                            if not shop_stock:
+                                return Response({"error": f"Product '{product_name}' not found in shop."}, status=status.HTTP_404_NOT_FOUND)
 
-                        # Check if stock is sufficient
-                        if shop_stock.quantity < quantity_sold:
-                            return Response({
-                                "error": f"Not enough stock for '{product_name}'. Available: {shop_stock.quantity}, Requested: {quantity_sold}"
-                            }, status=status.HTTP_404_NOT_FOUND)
+                            # Check stock availability
+                            if shop_stock.quantity < quantity_sold:
+                                return Response({
+                                    "error": f"Not enough stock for '{product_name}'. Available: {shop_stock.quantity}, Requested: {quantity_sold}"
+                                }, status=status.HTTP_404_NOT_FOUND)
 
-                        # Update stock levels
-                        shop_stock.quantity -= quantity_sold
-                        shop_stock.save()
+                            # Update stock levels
+                            shop_stock.quantity -= quantity_sold
+                            shop_stock.save()
 
-                        # Log the sale (optional)
-                        # SaleLog.objects.create(
-                        #     shop=user_shop,
-                        #     product=shop_stock.product,
-                        #     quantity_sold=quantity_sold,
-                        #     remaining_quantity=shop_stock.quantity
-                        # )
+                            # Update transaction log
+                            transaction_log.products.add(shop_stock.product)
+                            transaction_log.product_quantities[product_name] = quantity_sold
+                            transaction_log.profit += (Decimal(shop_stock.product.product_buying_price) -
+                                                       Decimal(shop_stock.product.price_per_item)) * quantity_sold
+                        except KeyError as e:
+                            return Response({"error": f"Missing field: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
 
-                    except KeyError as e:
-                        return Response({"error": f"Missing field: {str(e)}"}, status=status.HTTP_404_NOT_FOUND)
-
+                # Save the transaction log once
+                transaction_log.save()
             return Response({"message": "Sale completed successfully."}, status=status.HTTP_200_OK)
 
 

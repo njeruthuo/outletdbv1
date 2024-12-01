@@ -1,5 +1,6 @@
 from typing import Iterable
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from shop.models import Shop
 from stock.models import Product
@@ -35,7 +36,14 @@ class TransactionLog(models.Model):
     transaction_status = models.CharField(
         choices=TransactionStatusChoices.choices, max_length=15)
 
-    """Here, we will perform calculations for profit and save"""
+    # Store the quantities as JSON fields.
+
+    product_quantities = models.JSONField(
+        verbose_name=_("Product Quantities"),
+        help_text=_("A JSON object mapping product names to quantities sold."),
+        null=True,
+        blank=True
+    )
 
     def __str__(self) -> str:
         return f"{self.transaction_type} sale by {self.user.username} from {self.shop.branch_name} is {self.transaction_status}"
