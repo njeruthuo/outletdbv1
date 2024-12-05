@@ -12,13 +12,13 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 import os
 from pathlib import Path
-from dotenv import load_dotenv
-load_dotenv()
 
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -32,7 +32,6 @@ DEBUG = True
 ALLOWED_HOSTS = ['a436-102-219-208-154.ngrok-free.app',
                  '*', 'truly-evident-hedgehog.ngrok-free.app']
 
-
 INSTALLED_APPS = [
     'jazzmin',
     'corsheaders',
@@ -40,6 +39,7 @@ INSTALLED_APPS = [
     'shop.apps.ShopConfig',
     'ext_apis',
     'channels',
+    'notification.apps.NotificationConfig',
     'stock.apps.StockConfig',
     'users.apps.UsersConfig',
     'rest_framework.authtoken',
@@ -63,9 +63,9 @@ CHANNEL_LAYERS = {
     },
 }
 
-
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'notification.middleware.ThreadLocalMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -93,9 +93,6 @@ TEMPLATES = [
     },
 ]
 
-
-
-
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',  # Default backend
     'users.authentication.EmailAuthenticationBackend',  # Custom backend
@@ -119,7 +116,6 @@ CORS_ALLOW_METHODS = [
     'OPTIONS',
 ]
 
-
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
@@ -129,7 +125,6 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -149,7 +144,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
@@ -161,7 +155,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
@@ -170,15 +163,12 @@ STATIC_URL = 'static/'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
 DATETIME_FORMAT = ["%d %B, %Y %H:%M"]
-
 
 JAZZMIN_SETTINGS = {
     # title of the window (Will default to current_admin_site.site_title if absent or None)
@@ -226,12 +216,12 @@ JAZZMIN_SETTINGS = {
     "topmenu_links": [
 
         # Url that gets reversed (Permissions can be added)
-        {"name": "Home",  "url": "admin:index",
-            "permissions": ["auth.view_user"]},
+        {"name": "Home", "url": "admin:index",
+         "permissions": ["auth.view_user"]},
 
         # external url that opens in a new window (Permissions can be added)
         {"name": "Support", "url": "https://github.com/farridav/django-jazzmin/issues",
-            "new_window": True},
+         "new_window": True},
 
         # model admin to link to (Permissions checked against model)
         {"model": "users.User"},
@@ -247,7 +237,7 @@ JAZZMIN_SETTINGS = {
     # Additional links to include in the user menu on the top right ("app" url type is not allowed)
     "usermenu_links": [
         {"name": "Support", "url": "https://github.com/farridav/django-jazzmin/issues",
-            "new_window": True},
+         "new_window": True},
         {"model": "auth.user"}
     ],
 
