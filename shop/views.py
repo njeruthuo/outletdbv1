@@ -65,7 +65,7 @@ class ShopStockManagementAPI(APIView):
         disburseQuantity = request.data.get('disburseQuantity')
 
         if disburseQuantity and product_name and shop_name:
-            """Disburse stock to shop if all parameters are given"""
+            # """Disburse stock to shop if all parameters are given"""
             try:
                 product = Product.objects.get(name=product_name)
             except Product.DoesNotExist:
@@ -79,7 +79,7 @@ class ShopStockManagementAPI(APIView):
             disburse_stock(shop=shop, product=product,
                            disburse_quantity=disburseQuantity, disbursed_by=request.user)
 
-            return Response({}, status=status.HTTP_201_CREATED)
+            return Response({'Disbursed': 'The product was disbursed successfully!'}, status=status.HTTP_200_OK)
 
         else:
             """Complete a sale if sale parameters are provided"""
@@ -87,7 +87,7 @@ class ShopStockManagementAPI(APIView):
             # products = request.data  # Assume this is a dictionary of product data
             user_shop = request.user.operated_shop.first()
 
-            if not user_shop:
+            if not user_shop and not request.user.is_superuser:
                 return Response({"error": "Shop not found for the user."}, status=status.HTTP_404_NOT_FOUND)
 
             if isinstance(request.data, str):
@@ -106,6 +106,7 @@ class ShopStockManagementAPI(APIView):
                     product_quantities={},
                     profit=0
                 )
+
                 for product_data in products.values():
                     if isinstance(product_data, dict):
                         try:

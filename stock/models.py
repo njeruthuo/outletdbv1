@@ -1,9 +1,4 @@
 from django.db import models
-from django.db.models.signals import pre_save
-from django.dispatch import receiver
-
-from notification.middleware import get_current_request
-from notification.models import Notification, NotificationChoices
 
 
 class Brand(models.Model):
@@ -43,15 +38,12 @@ class Product(models.Model):
         Category, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.name
+        return str(self.name)
 
     class Meta:
         indexes = [
             models.Index(fields=['name', 'category', 'brand'])
         ]
-
-    def __str__(self):
-        return self.name
 
 
 class Stock(models.Model):
@@ -63,21 +55,3 @@ class Stock(models.Model):
 
     def __str__(self):
         return f"{self.product.name} restocked"
-
-
-@receiver(pre_save, sender=Stock, dispatch_uid="stock_reorder_signal", weak=False)
-def stock_reorder_level_crossed_pre_save(sender, instance, *args, **kwargs):
-    request = get_current_request()
-    if not request:
-        return
-
-    instance.refresh_from_db()
-
-    print(instance.quantity)
-
-    if instance.quantity < instance.reorder_level:
-        notification = Notification.objects.create(
-            sender=request.user,
-            receiver=request.user,
-            notification_type=NotificationChoices.STOCKDEPLETED
-        )
