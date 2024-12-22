@@ -1,13 +1,13 @@
+from django.db.transaction import atomic
+
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from django.db.transaction import atomic
+from .serializers import NotificationSerializer
 
 from notification.models import Notification, NotificationStatuses
 from users.authentication import TokenAuthentication
-
-from .serializers import NotificationSerializer
 
 
 class NotificationsAPI(APIView):
@@ -15,14 +15,12 @@ class NotificationsAPI(APIView):
     """Handles notifications"""
 
     def get(self, request, *args, **kwargs):
-        # print(f"{request.user} printed")
         """extracts the user from request & checking if they have notifications"""
         if not request.user.is_authenticated:
             return Response({"ERROR": "AUTHENTICATION REQUIRED."}, status=status.HTTP_401_UNAUTHORIZED)
 
         notifications = Notification.objects.filter(
             receiver=request.user).order_by('-id')
-        # print(notifications)
         serializer = NotificationSerializer(notifications, many=True).data
         return Response(serializer, status=status.HTTP_200_OK)
 

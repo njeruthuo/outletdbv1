@@ -6,13 +6,14 @@ from rest_framework.response import Response
 from django.db.transaction import atomic
 
 from ext_apis.models import TransactionLog, TransactionStatusChoices
-from shop.models import ShopStock
+from shop.models import ShopStock, StockDisbursement, StockDisbursementStatuses
 from stock.models import Product
 from stock.serializers import StockSerializer
 from stock.utils.disburse_stock import disburse_stock
+from stock.utils.low_stock_alert import notify_admin_low_stock
 from users.authentication import TokenAuthentication
-from users.models import TextChoices
-from .serializers import Shop, ShopSerializer
+from users.models import TextChoices, User
+from .serializers import Shop, ShopSerializer, ShopStockSerializer, StockDisbursementSerializer
 
 
 class ShopAPIView(APIView):
@@ -56,6 +57,12 @@ shop_api_view = ShopAPIView.as_view()
 
 class ShopStockManagementAPI(APIView):
     authentication_classes = [TokenAuthentication]
+
+    def get_superuser(self):
+        superuser = User.objects.filter(is_superuser=True).first()
+        if not superuser:
+            print("No superuser found")
+        return superuser
 
     @atomic
     def post(self, request, *args, **kwargs):
@@ -135,12 +142,50 @@ class ShopStockManagementAPI(APIView):
                             transaction_log.product_quantities[product_name] = quantity_sold
                             transaction_log.profit += (Decimal(shop_stock.product.product_buying_price) -
                                                        Decimal(shop_stock.product.price_per_item)) * quantity_sold
+
+                            # Create a notification to the admin if stock levels fall below reorder level
+                            if shop_stock.quantity <= shop_stock.reorder_level:
+                                notify_admin_low_stock(
+                                    shop=user_shop, sender=request.user, receiver=self.get_superuser())
+
                         except KeyError as e:
                             return Response({"error": f"Missing field: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
 
                 # Save the transaction log once
                 transaction_log.save()
+
             return Response({"message": "Sale completed successfully."}, status=status.HTTP_200_OK)
 
 
 shop_stock_mgt_api = ShopStockManagementAPI.as_view()
+
+
+class ShopStockDisbursementAPIView(APIView):
+
+    authentication_classes = [TokenAuthentication]
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        user_shop = user.operated_shop.first()
+
+        stock_disbursement = StockDisbursement.objects.filter(shop=user_shop)
+
+        completed_count = stock_disbursement.filter(
+            status=StockDisbursementStatuses.DISBURSEMENT_RECEIVED).count()
+
+        pending_count = stock_disbursement.filter(
+            status=StockDisbursementStatuses.DISBURSED).count()
+
+        return Response({'completed': completed_count, 'pending': pending_count}, status=status.HTTP_200_OK)
+
+    def post(self, request, *args, **kwargs):
+        return Response({}, status=status.HTTP_201_CREATED)
+
+    def put(self, request, *args, **kwargs):
+        return Response({}, status=status.HTTP_202_ACCEPTED)
+
+    def delete(self, request, *args, **kwargs):
+        return Response({}, status=status.HTTP_200_OK)
+
+
+shop_stock_disbursement_api_view = ShopStockDisbursementAPIView.as_view()

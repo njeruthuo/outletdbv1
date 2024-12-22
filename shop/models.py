@@ -1,5 +1,4 @@
 from django.db import models
-
 from stock.models import Product
 from users.models import User
 
@@ -33,6 +32,8 @@ class ShopStock(models.Model):
     product = models.ForeignKey(
         Product, on_delete=models.CASCADE, related_name='shop_products')
     quantity = models.PositiveIntegerField(default=0)
+
+    reorder_level = models.IntegerField(default=50)
 
     class Meta:
         unique_together = ('shop', 'product')

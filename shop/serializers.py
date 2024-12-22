@@ -34,3 +34,9 @@ class ShopSerializer(serializers.ModelSerializer):
         model = Shop
         fields = ['stock', 'branch_name',
                   'location', 'opening_date', 'weight_tat', 'avg_weekly_profit', 'licenses', 'coordinates', 'operators']
+
+
+class StockDisbursementSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StockDisbursement
+        fields = '__all__'

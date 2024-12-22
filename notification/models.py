@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.db import models
 
+from shop.models import Shop
 from stock.models import Stock
 
 User = get_user_model()
@@ -26,6 +27,8 @@ class Notification(models.Model):
     receiver = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='received_notifications'
     )
+    shop = models.ForeignKey(
+        Shop, on_delete=models.CASCADE, null=True, blank=True)
     notification_type = models.CharField(choices=NotificationChoices.choices, max_length=300,
                                          default=NotificationChoices.STOCKDEPLETED)
     notification_status = models.CharField(
