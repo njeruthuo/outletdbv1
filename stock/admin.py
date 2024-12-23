@@ -26,3 +26,4 @@ class StockAdmin(admin.ModelAdmin):
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = ['name', 'price_per_item', 'category', 'brand']
+    search_fields = ('name', 'brand','category')

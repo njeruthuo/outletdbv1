@@ -168,7 +168,11 @@ class ShopStockDisbursementAPIView(APIView):
         user = request.user
         user_shop = user.operated_shop.first()
 
-        stock_disbursement = StockDisbursement.objects.filter(shop=user_shop)
+        if user..is_superuser:
+            stock_disbursement = StockDisbursement.objects.all()
+        else:
+            stock_disbursement = StockDisbursement.objects.filter(
+                shop=user_shop)
 
         completed_count = stock_disbursement.filter(
             status=StockDisbursementStatuses.DISBURSEMENT_RECEIVED).count()

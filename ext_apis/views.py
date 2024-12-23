@@ -1,16 +1,25 @@
-from django.views import View
-import logging
 import json
 import base64
+import logging
 import requests
+
+from django.views import View
+from django.http import JsonResponse
+from django.db.models.functions import TruncMonth
+
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 
-from django.http import JsonResponse
+from rest_framework import status
+from django.db.models import Count
 from rest_framework.views import APIView
+from rest_framework.response import Response
 
-from utils.phone_number_formatter import format_phone_number
+from ext_apis.models import TransactionLog
+from ext_apis.serializers import TransactionLogSerializer
+from users.authentication import TokenAuthentication
 from utils.timestamp_evaluator import get_timestamp
+from utils.phone_number_formatter import format_phone_number
 
 CONSUMER_KEY = 'AbVyvUru4hhA195H5lZLlHJp4tqCEwLElIMu0ydPWxSmviC'
 CONSUMER_SECRET = "PkIDUOPNNtBtZR1Ybh3Rh6d6GEoVKk4cRdtH8z4ZdYQUyrPlop1FpZExFhLBNjHz"
@@ -19,8 +28,6 @@ CONSUMER_SECRET = "PkIDUOPNNtBtZR1Ybh3Rh6d6GEoVKk4cRdtH8z4ZdYQUyrPlop1FpZExFhLBN
 BASE_URL = "https://sandbox.safaricom.co.ke"
 TOKEN_URL = f"{BASE_URL}/oauth/v1/generate?grant_type=client_credentials"
 STK_PUSH_URL = f"{BASE_URL}/mpesa/stkpush/v1/processrequest"
-
-# Generate OAuth Token
 
 
 def get_access_token():
@@ -36,8 +43,6 @@ def generate_password():
     passkey = "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919"
     data_to_encode = f"{short_code}{passkey}{timestamp}"
     return base64.b64encode(data_to_encode.encode()).decode()
-
-# Initiate STK Push
 
 
 class MpesaPayAPIView(APIView):
@@ -118,3 +123,35 @@ class PaymentCallBackAPIView(View):
 
 
 payment_callback = PaymentCallBackAPIView.as_view()
+
+
+class TransactionLogsAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+
+        if user.is_superuser:
+            monthly_counts = (
+                TransactionLog.objects.annotate(
+                    month=TruncMonth('date_created'))
+                .values('month')
+                .annotate(count=Count('id'))
+            )
+        else:
+            user_shop = user.operated_shop.first()
+            monthly_counts = (
+                TransactionLog.objects.filter(shop=user_shop).annotate(
+                    month=TruncMonth('date_created'))
+                .values('month')
+                .annotate(count=Count('id'))
+            )
+        log_counts_by_month = {
+            record['month'].strftime('%b'): record['count']
+            for record in monthly_counts
+        }
+
+        return Response(log_counts_by_month, status=status.HTTP_200_OK)
+
+
+transaction_logs_api_view = TransactionLogsAPIView.as_view()
