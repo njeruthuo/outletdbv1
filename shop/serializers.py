@@ -36,7 +36,17 @@ class ShopSerializer(serializers.ModelSerializer):
                   'location', 'opening_date', 'weight_tat', 'avg_weekly_profit', 'licenses', 'coordinates', 'operators']
 
 
+class SecondaryShopSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Shop
+        fields = ['branch_name']
+
+
 class StockDisbursementSerializer(serializers.ModelSerializer):
+    product = ProductSerializer()
+    shop = SecondaryShopSerializer()
+
     class Meta:
         model = StockDisbursement
-        fields = '__all__'
+        fields = ['shop', 'product', 'disburse_quantity',
+                  'disbursed_by', 'timestamp', 'status']

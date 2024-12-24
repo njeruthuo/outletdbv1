@@ -31,7 +31,17 @@ class ReportAPIView(APIView):
             return Response(serializer, status=status.HTTP_200_OK)
 
         elif qs == "Disbursements":
-            return Response({}, status=status.HTTP_200_OK)
+            if user.is_superuser:
+                disbursements = StockDisbursement.objects.all()
+            else:
+                disbursements = StockDisbursement.objects.filter(
+                    shop=user_shop)
+
+            serializer = StockDisbursementSerializer(
+                disbursements, many=True).data
+
+            return Response(serializer, status=status.HTTP_200_OK)
+
         elif qs == "Sales":
             return Response({}, status=status.HTTP_200_OK)
         else:
