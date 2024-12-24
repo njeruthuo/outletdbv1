@@ -28,5 +28,6 @@ urlpatterns = [
     path('api/shop/', include('shop.urls')),
     path('api/notifications/', include('notification.urls')),
     path('api/external/', include('ext_apis.urls')),
+    path('api/report/', include('reports.urls')),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
