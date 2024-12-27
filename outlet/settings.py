@@ -76,6 +76,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+
 ROOT_URLCONF = 'outlet.urls'
 
 TEMPLATES = [
@@ -99,9 +100,22 @@ AUTHENTICATION_BACKENDS = [
     'users.authentication.EmailAuthenticationBackend',  # Custom backend
 ]
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:5173', ]
 
-CSRF_TRUSTED_ORIGINS = ['https://truly-evident-hedgehog.ngrok-free.app']
+CSRF_TRUSTED_ORIGINS = [
+    'https://truly-evident-hedgehog.ngrok-free.app', 'http://localhost:5173']
+
+# Optional: Allow credentials to be sent (cookies, authorization headers)
+CORS_ALLOW_CREDENTIALS = True
+
+# Allow specific headers (like CSRF)
+CORS_ALLOW_HEADERS = [
+    'content-type',
+    'Authorization',
+    'X-CSRFToken',
+]
+
 
 CORS_ALLOW_METHODS = [
     'GET',

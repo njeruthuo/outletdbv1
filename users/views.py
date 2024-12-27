@@ -1,11 +1,15 @@
+from rest_framework.decorators import authentication_classes, permission_classes, api_view
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 
-from shop.models import Shop
 from .models import TextChoices
 from .serializers import UserSerializer, User
+
+from shop.models import Shop
+from users.authentication import TokenAuthentication
 
 from django.contrib.auth import authenticate
 
@@ -58,5 +62,31 @@ class UserAPIView(APIView):
                 return Response({'message': 'User created successfully'}, status=status.HTTP_200_OK)
             return Response({'message': 'User creation unsuccessful'}, status=status.HTTP_400_BAD_REQUEST)
 
+    def put(self, request, *args, **kwargs):
+        pass
+
 
 user_api_view = UserAPIView.as_view()
+
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
+def change_password_api_view(request, *args, **kwargs):
+    user = request.user
+
+    old_password = request.data.get('oldPassword')
+    new_password = request.data.get('newPassword')
+
+    if not old_password or not new_password:
+        return Response({'ERROR': 'Both old and new passwords are required.'.upper()}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Check if the old password is correct
+    if not user.check_password(old_password):
+        return Response({'ERROR': 'Old password is incorrect!'.upper()}, status=status.HTTP_403_FORBIDDEN)
+
+    # Set the new password
+    user.set_password(new_password)
+    user.save()  # Save the user with the new password
+
+    return Response({'SUCCESS': 'Password was changed successfully!'.upper()}, status=status.HTTP_200_OK)
