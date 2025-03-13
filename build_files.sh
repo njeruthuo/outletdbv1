@@ -6,7 +6,7 @@ if ! command -v python3 &>/dev/null; then
     apt-get update && apt-get install -y python3 python3-pip
 fi
 
-export path = "user/bin:$PATH"
+export path = "usr/bin:$PATH"
 
 echo "INSTALLING REQUIREMENTS....."
 
