@@ -15,8 +15,8 @@ python3 -m pip install -r requirements.txt
 
 echo "Installing requirements Done..."
 
-# echo "collect static begins...."
+echo "collect static begins...."
 
-# python3 manage.py collectstatic --noinput
+python3 manage.py collectstatic --noinput
 
-# echo "collect static done...."
+echo "collect static done...."
