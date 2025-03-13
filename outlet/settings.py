@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-*g&g6(cvk5pl^fq)+g$70j&h@dv)mkre^%p$udgzovp@dh8ia6
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['a436-102-219-208-154.ngrok-free.app',
+ALLOWED_HOSTS = ['outletdbv1.vercel.app',
                  '*', 'truly-evident-hedgehog.ngrok-free.app']
 
 INSTALLED_APPS = [
