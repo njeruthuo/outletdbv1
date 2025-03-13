@@ -20,9 +20,6 @@ load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-*g&g6(cvk5pl^fq)+g$70j&h@dv)mkre^%p$udgzovp@dh8ia6'
 
@@ -101,10 +98,10 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:5173', ]
+    'http://localhost:5173', "https://outletv1.vercel.app"]
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://truly-evident-hedgehog.ngrok-free.app', 'http://localhost:5173']
+    'https://truly-evident-hedgehog.ngrok-free.app', 'http://localhost:5173', "https://outletv1.vercel.app"]
 
 # Optional: Allow credentials to be sent (cookies, authorization headers)
 CORS_ALLOW_CREDENTIALS = True
