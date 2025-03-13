@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-*g&g6(cvk5pl^fq)+g$70j&h@dv)mkre^%p$udgzovp@dh8ia6
 DEBUG = True
 
 ALLOWED_HOSTS = ['outletdbv1.vercel.app',
-                 '*', 'truly-evident-hedgehog.ngrok-free.app']
+                 '*', ".now.sh"]
 
 INSTALLED_APPS = [
     'jazzmin',
